@@ -13,13 +13,11 @@ WEBHOOK="${1}"
 CLONE_URL=`jq '.repository.clone_url' $WEBHOOK | tr -d '"'`
 REPO_NAME=`basename ${CLONE_URL%%.git}`
 DESCRIPTION_FILE="$REPO_NAME/agave.json"
-echo REPO NAME: $REPO_NAME
 
 REF=`jq '.ref' $WEBHOOK | tr -d '"'` 			# ref/tags/branch
 CHECK_BRANCH=`basename $REF`				# ref/tags/BRANCH
 CHECK_TAGS=`basename $(dirname $REF)`			# ref/TAGS/branch
 CHECK_CREATED=`jq '.created' $WEBHOOK | tr -d '"'`
-echo REF: ref/$CHECK_TAGS/$CHECK_BRANCH
 
 IS_RELEASE=false
 IS_VALID_COMMIT=false
@@ -32,18 +30,11 @@ else
 	exit
 fi
 
-# check current dir is not git repo
-if [ ! "$(git branch 2> /dev/null)" == "" ]; then 
-	echo "Current dir $PWD is already git dir. Exiting."
-	exit
-fi
-
 # clone repo
-echo Cloning into $PWD
 git clone $CLONE_URL
 
 # check for app description
-if ! [ -e "$PWD/$DESCRIPTION_FILE" ]; then
+if ! [ -e "$DESCRIPTION_FILE" ]; then
 	echo "The repo must contain exactly one agave.json file in the base directory. Exiting."
 	exit
 fi
@@ -56,13 +47,13 @@ if [[ "$VERSION" == "(sourceref)" ]]; then
 	else
 		REPLACEMENT=`newID $DESCRIPTION_FILE`
 	fi
+
 	# update description file
         VERSION="${VERSION/(sourceref)/$REPLACEMENT}"
 	CHANGE_DESCRIPTION_FILE=`jq --arg foo $VERSION '.version = $foo' $DESCRIPTION_FILE`
-	rm $PWD/$DESCRIPTION_FILE
-	echo $CHANGE_DESCRIPTION_FILE >> $PWD/$DESCRIPTION_FILE
+	rm $DESCRIPTION_FILE
+	echo $CHANGE_DESCRIPTION_FILE >> $DESCRIPTION_FILE
 fi
 
 # register app
-echo Registering app
 apps-addupdate -F $DESCRIPTION_FILE
