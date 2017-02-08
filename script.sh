@@ -19,12 +19,8 @@ CHECK_TAGS=`basename $(dirname $REF)`			# ref/TAGS/branch
 CHECK_CREATED=`jq '.created' $WEBHOOK | tr -d '"'`
 
 IS_RELEASE=false
-#IS_VALID_COMMIT=false
 if [ "$CHECK_TAGS" == "tags" ]; then
 	IS_RELEASE=true
-#elif [ "$CHECK_BRANCH" == "master" ] || [ $CHECK_CREATED = false ]; then
-#	IS_VALID_COMMIT=true
-#else
 elif ! [ "$CHECK_BRANCH" == "master" ] && ! [ $CHECK_CREATED = false ]; then
 	echo "This is not a simple commit or release. Exiting without updating app."
 	exit
