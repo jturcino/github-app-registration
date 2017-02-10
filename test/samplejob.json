@@ -1,5 +1,5 @@
 {
-  "name":"github-registration-test7",
+  "name":"",
   "appId": "jturcino-github-app-registration-0.0.1",
   "batchQueue": "normal",
   "executionSystem": "jturcino-stampede",
@@ -9,20 +9,20 @@
   "processorsPerNode": 16,
   "archive": true,
   "archiveSystem": "data.iplantcollaborative.org",
-  "archivePath": "/jturcino/files/",
+  "archivePath": "",
   "inputs": {
-    "webhookFile": "/jturcino/apps/github-app-registration/branch_commit.json"
+    "webhookFile": ""
   },
   "parameters": {
   },
   "notifications": [
     {
-      "url":"https://hooks.slack.com/services/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",
+      "url":"",
       "event":"FAILED",
       "persistent":true
     },
     {
-      "url":"https://hooks.slack.com/services/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",
+      "url":"",
       "event":"FINISHED",
       "persistent":true
     }

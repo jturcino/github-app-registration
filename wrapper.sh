@@ -24,6 +24,7 @@ CREATED=`$JQ '.created' $WEBHOOK | tr -d '"'`
 IS_RELEASE=false
 if [ "$CHECK_TAGS" == "tags" ]; then
 	IS_RELEASE=true
+	BRANCH="master"
 	echo "Treating as release.." >&1
 
 elif ! [ "$BRANCH" == "master" ] && ! [ $CREATED = false ]; then
@@ -60,7 +61,7 @@ fi
 
 # append branch name
 NAME=`$JQ '.name' $DESCRIPTION_FILE | tr -d '"'`
-if ! [ "$BRANCH" == "master" ] && ! [ "$NAME" == *"-$BRANCH" ]; then
+if [ $IS_RELEASE = false ] && ! [ "$BRANCH" == "master" ] && ! [ "$NAME" == *"-$BRANCH" ]; then
 	NAME_REPLACEMENT="$NAME-$BRANCH"
 	CHANGE_DESCRIPTION_FILE=`$JQ --arg foo $NAME_REPLACEMENT '.name = $foo' $DESCRIPTION_FILE`
 	rm $DESCRIPTION_FILE
