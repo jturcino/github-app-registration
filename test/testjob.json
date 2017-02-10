@@ -1,5 +1,5 @@
 {
-  "name":"github-registration-test2",
+  "name":"github-registration-test3",
   "appId": "jturcino-github-app-registration-0.0.1",
   "batchQueue": "normal",
   "executionSystem": "jturcino-stampede",
@@ -9,7 +9,7 @@
   "processorsPerNode": 16,
   "archive": true,
   "archiveSystem": "data.iplantcollaborative.org",
-  "archivePath": null,
+  "archivePath": "/jturcino/files/",
   "inputs": {
     "webhookFile": "/jturcino/apps/github-app-registration/release.json"
   },
