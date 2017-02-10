@@ -1,0 +1,30 @@
+{
+  "name":"github-registration-test2",
+  "appId": "jturcino-github-app-registration-0.0.1",
+  "batchQueue": "normal",
+  "executionSystem": "jturcino-stampede",
+  "maxRunTime": "08:00:00",
+  "memoryPerNode": "32GB",
+  "nodeCount": 1,
+  "processorsPerNode": 16,
+  "archive": true,
+  "archiveSystem": "data.iplantcollaborative.org",
+  "archivePath": null,
+  "inputs": {
+    "webhookFile": "/jturcino/apps/github-app-registration/release.json"
+  },
+  "parameters": {
+  },
+  "notifications": [
+    {
+      "url":"https://hooks.slack.com/services/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",
+      "event":"FAILED",
+      "persistent":true
+    },
+    {
+      "url":"https://hooks.slack.com/services/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",
+      "event":"FINISHED",
+      "persistent":true
+    }
+  ]
+}

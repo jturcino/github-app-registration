@@ -1,0 +1,48 @@
+{"available":true,
+ "checkpointable":false,
+ "defaultMemoryPerNode":32,
+ "defaultProcessorsPerNode":16,
+ "defaultMaxRunTime":"08:00:00",
+ "defaultNodeCount":1,
+ "defaultQueue":"normal",
+ "deploymentPath":"jturcino/apps/github-app-registration",
+ "deploymentSystem":"data.iplantcollaborative.org",
+ "executionSystem":"jturcino-stampede",
+ "executionType":"HPC",
+ "helpURI":"",
+ "label": "app add/update using github",
+ "longDescription":"Use github webhook output to add/update an application. Updates app versions using release tags, and increments version with commits. Commits on branches update name to appname-branchi-version.",
+ "modules":[],
+ "name":"jturcino-github-app-registration",
+ "ontology":["http://sswapmeet.sswap.info/agave/apps/Application"],
+ "parallelism":"SERIAL",
+ "shortDescription":"Use github webhook output to add/update an application.",
+ "tags":["github", "stampede", "update", "application", "app", "supercool"],
+ "templatePath":"wrapper.sh",
+ "testPath":"test/test.sh",
+ "version":"0.0.1",
+ "inputs":[
+    {"id":"webhookFile",
+     "value":
+        {"default":"",
+         "order":0,
+         "required":true,
+         "validator":"",
+         "visible":true},
+     "semantics":
+        {"ontology":[""],
+         "minCardinality":1,
+         "maxCardinality":1,
+         "fileTypes":["raw-0"]},
+     "details":
+        {"description":"",
+         "label":"JSON contents of webhook",
+         "argument":null,
+         "showArgument":false
+	}
+     }
+ ],
+ "parameters":[],
+ "outputs":[]
+}
+
