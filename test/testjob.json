@@ -1,9 +1,9 @@
 {
-  "name":"github-registration-test7",
+  "name":"github-registration-test11",
   "appId": "jturcino-github-app-registration-0.0.1",
   "batchQueue": "normal",
   "executionSystem": "jturcino-stampede",
-  "maxRunTime": "08:00:00",
+  "maxRunTime": "00:30:00",
   "memoryPerNode": "32GB",
   "nodeCount": 1,
   "processorsPerNode": 16,
