@@ -32,11 +32,11 @@ DESCRIPTION_FILE="$REPO_NAME/agave.json"
 
 REF=`jq '.ref' $WEBHOOK | tr -d '"'` 			# ref/tags/branch
 BRANCH=`basename $REF`					# ref/tags/BRANCH
-TAGS=`basename $(dirname $REF)`			# ref/TAGS/branch
+TAGS=`basename $(dirname $REF)`				# ref/TAGS/branch
 CREATED=`jq '.created' $WEBHOOK | tr -d '"'`
 
 IS_RELEASE=false
-if [ "$TAGS" == "tags" ]; then # this event is a release
+if [ "$TAGS" == "tags" ]; then 				# this event is a release
 	IS_RELEASE=true
 	BRANCH=`jq '.base_ref' $WEBHOOK | tr -d '"' | xargs basename`
 elif ! [ "$BRANCH" == "master" ] && ! [ $CREATED = false ]; then # this event is the creation of a branch 
@@ -53,33 +53,47 @@ if ! [ -e "$DESCRIPTION_FILE" ]; then
 	exit
 fi
 
+# load agave.json as string
+# string will be changed (name, insert commit hash, version)
+CHANGE_DESCRIPTION_FILE=`cat $DESCRIPTION_FILE`
 
 # append branch name
-NAME=`jq '.name' $DESCRIPTION_FILE | tr -d '"'`
-#NAME=`cat $DESCRIPTION_FILE | ./bin/jq '.name' | tr -d '"'`
+NAME=`echo $CHANGE_DESCRIPTION_FILE | ./bin/jq '.name' | tr -d '"'`
 if [ $IS_RELEASE = false ] && ! [ "$BRANCH" == "master" ] && ! [ "$NAME" == *"-$BRANCH" ]; then
 	NAME_REPLACEMENT="$NAME-$BRANCH"
-	CHANGE_DESCRIPTION_FILE=`jq --arg foo $NAME_REPLACEMENT '.name = $foo' $DESCRIPTION_FILE`
-#	CHANGE_DESCRIPTION_FILE=`cat $DESCRIPITON_FILE | ./bin/jq --arg foo $NAME_REPLACEMENT '.name = $foo'`
-	rm $DESCRIPTION_FILE
-	echo "$CHANGE_DESCRIPTION_FILE" > $DESCRIPTION_FILE
+
+	# update app name
+	CHANGE_DESCRIPTION_FILE=`echo $CHANGE_DESCRIPTION_FILE | 
+				./bin/jq --arg foo "$NAME_REPLACEMENT" 'to_entries | 
+					map(if .key == "name" 
+						then . + {"value":$foo} 
+						else . 
+						end 
+					) 
+				| from_entries'`
 fi
 
-# add hash if given (commithash)
-LONG_DESCRIPTION=`jq '.longDescription' $DESCRIPTION_FILE | tr -d '"'`
-#LONG_DESCRIPTION=`cat $DESCRIPITON_FILE | ./bin/jq '.longDescription' | tr -d '"'`
+# add commit hash if macro (commithash) in longDescription
+LONG_DESCRIPTION=`echo $CHANGE_DESCRIPTION_FILE | ./bin/jq '.longDescription' | tr -d '"'`
 if ! [ $IS_RELEASE = true ] && [[ $LONG_DESCRIPTION == *"(commithash)"* ]]; then
 	COMMIT_HASH=`jq '.after' $WEBHOOK | tr -d '"'`
 	LONG_DESCRIPTION="${LONG_DESCRIPTION//"(commithash)"/$COMMIT_HASH}"
-	CHANGE_DESCRIPTION_FILE=`jq --arg foo "$LONG_DESCRIPTION" '.longDescription = $foo' $DESCRIPTION_FILE`
-        rm $DESCRIPTION_FILE
-        echo $CHANGE_DESCRIPTION_FILE >> $DESCRIPTION_FILE
+
+	# update longDescription
+	CHANGE_DESCRIPTION_FILE=`echo $CHANGE_DESCRIPTION_FILE | 
+				./bin/jq --arg foo "$LONG_DESCRIPTION" 'to_entries | 
+					map(if .key == "longDescription" 
+						then . + {"value":$foo} 
+						else . 
+						end 
+					) 
+				| from_entries'`
 fi
 
 # set up version if given (sourceref)
 #   if release, use tags
 #   if commit (branch or master), increment by on (eg. 0.1.0 --> 0.1.1)
-PREV_VERSION=`jq '.version' $DESCRIPTION_FILE | tr -d '"'`
+PREV_VERSION=`echo $CHANGE_DESCRIPTION_FILE | jq '.version' | tr -d '"'`
 if [ "$PREV_VERSION" == "(sourceref)" ]; then 		# version is to be updated
         if [ $IS_RELEASE = true ]; then 		# if release, use tags (ref/tags/TAGS)
                 NEW_VERSION=`basename $REF`
@@ -87,15 +101,20 @@ if [ "$PREV_VERSION" == "(sourceref)" ]; then 		# version is to be updated
                 NEW_VERSION=`newVersion $DESCRIPTION_FILE`
         fi
 
-        # update description file
-        CHANGE_DESCRIPTION_FILE=`jq --arg foo $NEW_VERSION '.version = $foo' $DESCRIPTION_FILE`
-        rm $DESCRIPTION_FILE
-        echo $CHANGE_DESCRIPTION_FILE >> $DESCRIPTION_FILE
+        # update version
+	CHANGE_DESCRIPTION_FILE=`echo $CHANGE_DESCRIPTION_FILE | 
+				./bin/jq --arg foo "$NEW_VERSION" 'to_entries | 
+					map(if .key == "version" 
+						then . + {"value":$foo} 
+						else . 
+						end 
+					) 
+				| from_entries'`
 fi
 
 # replace $DESCRIPTION_FILE with changes
 rm $DESCRIPTION_FILE
-echo $CHANGE_DESCRIPTION_FILE >> $DESCRIPTION_FILE
+echo $CHANGE_DESCRIPTION_FILE > $DESCRIPTION_FILE
 
 # register app
 apps-addupdate -F $DESCRIPTION_FILE
