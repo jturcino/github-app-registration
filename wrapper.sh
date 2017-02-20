@@ -53,13 +53,27 @@ if ! [ -e "$DESCRIPTION_FILE" ]; then
 	exit
 fi
 
+
 # append branch name
 NAME=`jq '.name' $DESCRIPTION_FILE | tr -d '"'`
+#NAME=`cat $DESCRIPTION_FILE | ./bin/jq '.name' | tr -d '"'`
 if [ $IS_RELEASE = false ] && ! [ "$BRANCH" == "master" ] && ! [ "$NAME" == *"-$BRANCH" ]; then
 	NAME_REPLACEMENT="$NAME-$BRANCH"
 	CHANGE_DESCRIPTION_FILE=`jq --arg foo $NAME_REPLACEMENT '.name = $foo' $DESCRIPTION_FILE`
+#	CHANGE_DESCRIPTION_FILE=`cat $DESCRIPITON_FILE | ./bin/jq --arg foo $NAME_REPLACEMENT '.name = $foo'`
 	rm $DESCRIPTION_FILE
-	echo $CHANGE_DESCRIPTION_FILE >> $DESCRIPTION_FILE
+	echo "$CHANGE_DESCRIPTION_FILE" > $DESCRIPTION_FILE
+fi
+
+# add hash if given (commithash)
+LONG_DESCRIPTION=`jq '.longDescription' $DESCRIPTION_FILE | tr -d '"'`
+#LONG_DESCRIPTION=`cat $DESCRIPITON_FILE | ./bin/jq '.longDescription' | tr -d '"'`
+if ! [ $IS_RELEASE = true ] && [[ $LONG_DESCRIPTION == *"(commithash)"* ]]; then
+	COMMIT_HASH=`jq '.after' $WEBHOOK | tr -d '"'`
+	LONG_DESCRIPTION="${LONG_DESCRIPTION//"(commithash)"/$COMMIT_HASH}"
+	CHANGE_DESCRIPTION_FILE=`jq --arg foo "$LONG_DESCRIPTION" '.longDescription = $foo' $DESCRIPTION_FILE`
+        rm $DESCRIPTION_FILE
+        echo $CHANGE_DESCRIPTION_FILE >> $DESCRIPTION_FILE
 fi
 
 # set up version if given (sourceref)
@@ -78,6 +92,10 @@ if [ "$PREV_VERSION" == "(sourceref)" ]; then 		# version is to be updated
         rm $DESCRIPTION_FILE
         echo $CHANGE_DESCRIPTION_FILE >> $DESCRIPTION_FILE
 fi
+
+# replace $DESCRIPTION_FILE with changes
+rm $DESCRIPTION_FILE
+echo $CHANGE_DESCRIPTION_FILE >> $DESCRIPTION_FILE
 
 # register app
 apps-addupdate -F $DESCRIPTION_FILE
